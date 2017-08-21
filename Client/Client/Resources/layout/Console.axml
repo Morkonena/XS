@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#FF000000">
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:backgroundTint="#FFFFFFFF"
+        android:textColorHint="#FFFFFFFF"
+        android:textColor="#FFFFFFFF"
+        android:imeOptions="actionSend"
+        android:hint="Komento"
+        android:id="@+id/ConsoleInput" />
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/ConsoleInput"
+        android:layout_alignParentTop="true">
+        <HorizontalScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="50dp"
+                android:minHeight="50dp"
+                android:background="#00000000"
+                android:textColor="#FFFFFFFF"
+                android:textSize="18sp"
+                android:id="@+id/ConsoleText" />
+        </HorizontalScrollView>
+    </ScrollView>
+</RelativeLayout>

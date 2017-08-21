@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+  <style name="ClientTheme" parent="android:Theme.Material.Light.NoActionBar">
+    <item name="android:colorPrimary">#FF0094FF</item>
+    <item name="android:colorAccent">#FF0094FF</item>
+    <item name="android:statusBarColor">#FF000000</item>
+  </style>
+  <style name="ClientThemeDark" parent="android:Theme.Material.NoActionBar.Fullscreen">
+    <item name="android:colorPrimary">#FF0094FF</item>
+    <item name="android:colorAccent">#FF0094FF</item>
+    <item name="android:statusBarColor">#FF303030</item>
+    <item name="android:navigationBarColor">#FF303030</item>
+  </style>
+</resources>

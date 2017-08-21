@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="22dp">
+    <TextView
+        android:text="Komennolla ei ollut kuvausta"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/CommandDescription" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        android:layout_below="@id/CommandDescription"
+        android:layout_marginTop="16dp"
+        android:id="@+id/ProcessContainer">
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/ProcessList" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Ei prosesseja"
+            android:textStyle="bold"
+            android:id="@+id/NoProcesses" />
+    </RelativeLayout>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ProcessContainer"
+        android:hint="Nimi"
+        android:id="@+id/ProcessName" />
+    <CheckBox
+        android:text="Avaa konsoli"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ProcessName"
+        android:id="@+id/ConsoleCheckbox" />
+</RelativeLayout>
