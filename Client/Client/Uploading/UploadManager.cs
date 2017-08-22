@@ -5,11 +5,11 @@ using System.IO;
 using System;
 using System.Threading.Tasks;
 
-using Client.Activities;
-using Client.Utilities;
+using XC.Activities;
+using XC.Utilities;
 using Android.Widget;
 
-namespace Client.Uploading
+namespace XC.Uploading
 {
     class UploadManager
     {
@@ -25,18 +25,18 @@ namespace Client.Uploading
             socket.Send(buffer);
         }
 
-        public static void StartAsync(Base application, int port, int bufferSize, string filename)
+        public static void StartAsync(RootActivity application, int port, int bufferSize, string filename)
         {
             Uploads.Add(Task.Run(() => { Start(application, port, bufferSize, filename); }));
         }
 
-        private static void Start (Base application, int port, int bufferSize, string filename)
+        private static void Start (RootActivity root, int port, int bufferSize, string filename)
         {
             try
             {
                 var connection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                 {
-                    SendBufferSize = 1000000
+                    SendBufferSize = bufferSize
                 };
 
                 var result = connection.BeginConnect(new IPEndPoint(Connection.ConnectionInfo.Address, port), null, null);
@@ -44,8 +44,7 @@ namespace Client.Uploading
                 if (!result.AsyncWaitHandle.WaitOne(Timeout, true))
                 {
                     connection.Close();
-
-                    application.RunOnUiThread(() => { Toast.MakeText(application, "Lähetysyhteyttä ei saatu muodostettua!", ToastLength.Long).Show(); });
+                    root.ShowToast("Lähetysyhteyttä ei saatu muodostettua!");
                     return;
                 }
 
@@ -77,7 +76,7 @@ namespace Client.Uploading
             }
             catch (Exception e)
             {
-                application.RunOnUiThread(() => { Toast.MakeText(application, "Latauksessa tapahtui virhe: " + e.ToString(), ToastLength.Long).Show(); });
+                root.ShowDialog(e.ToString(), "Virhe");
             }
             finally
             {

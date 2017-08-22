@@ -9,9 +9,9 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: global::Android.Runtime.ResourceDesignerAttribute("Client.Resource", IsApplication=true)]
+[assembly: global::Android.Runtime.ResourceDesignerAttribute("XC.Resource", IsApplication=true)]
 
-namespace Client
+namespace XC
 {
 	
 	
@@ -76,67 +76,70 @@ namespace Client
 		{
 			
 			// aapt resource value: 0x7f060002
-			public const int CommandAdd = 2131099650;
-			
-			// aapt resource value: 0x7f06000c
-			public const int CommandDescription = 2131099660;
+			public const int Commands_Add = 2131099650;
 			
 			// aapt resource value: 0x7f060000
-			public const int CommandList = 2131099648;
+			public const int Commands_List = 2131099648;
 			
 			// aapt resource value: 0x7f060001
-			public const int CommandsNone = 2131099649;
-			
-			// aapt resource value: 0x7f060011
-			public const int ConsoleCheckbox = 2131099665;
-			
-			// aapt resource value: 0x7f060003
-			public const int ConsoleInput = 2131099651;
+			public const int Commands_None = 2131099649;
 			
 			// aapt resource value: 0x7f060004
-			public const int ConsoleText = 2131099652;
+			public const int Compile_Description = 2131099652;
 			
-			// aapt resource value: 0x7f060007
-			public const int CreateCommandDescription = 2131099655;
-			
-			// aapt resource value: 0x7f060006
-			public const int CreateCommandName = 2131099654;
-			
-			// aapt resource value: 0x7f060008
-			public const int CreateFileField = 2131099656;
-			
-			// aapt resource value: 0x7f060009
-			public const int CreateProject_Name = 2131099657;
-			
-			// aapt resource value: 0x7f06000a
-			public const int EditorField = 2131099658;
-			
-			// aapt resource value: 0x7f06000b
-			public const int EditorUtility = 2131099659;
-			
-			// aapt resource value: 0x7f060012
-			public const int LoginPassword = 2131099666;
-			
-			// aapt resource value: 0x7f06000f
-			public const int NoProcesses = 2131099663;
-			
-			// aapt resource value: 0x7f06000d
-			public const int ProcessContainer = 2131099661;
-			
-			// aapt resource value: 0x7f06000e
-			public const int ProcessList = 2131099662;
-			
-			// aapt resource value: 0x7f060010
-			public const int ProcessName = 2131099664;
-			
-			// aapt resource value: 0x7f060013
-			public const int SelectionList = 2131099667;
-			
-			// aapt resource value: 0x7f060014
-			public const int WaitSpinner = 2131099668;
+			// aapt resource value: 0x7f060003
+			public const int Compile_Name = 2131099651;
 			
 			// aapt resource value: 0x7f060005
-			public const int linearLayout1 = 2131099653;
+			public const int Console_Input = 2131099653;
+			
+			// aapt resource value: 0x7f060006
+			public const int Console_Text = 2131099654;
+			
+			// aapt resource value: 0x7f060008
+			public const int Editor_Options = 2131099656;
+			
+			// aapt resource value: 0x7f060007
+			public const int Editor_Text = 2131099655;
+			
+			// aapt resource value: 0x7f06000e
+			public const int Execute_Console = 2131099662;
+			
+			// aapt resource value: 0x7f06000a
+			public const int Execute_Container = 2131099658;
+			
+			// aapt resource value: 0x7f060009
+			public const int Execute_Description = 2131099657;
+			
+			// aapt resource value: 0x7f06000b
+			public const int Execute_List = 2131099659;
+			
+			// aapt resource value: 0x7f06000d
+			public const int Execute_Name = 2131099661;
+			
+			// aapt resource value: 0x7f06000c
+			public const int Execute_NoProcesses = 2131099660;
+			
+			// aapt resource value: 0x7f06000f
+			public const int File_Name = 2131099663;
+			
+			// aapt resource value: 0x7f060010
+			public const int Login_Password = 2131099664;
+			
+			// aapt resource value: 0x7f060011
+			public const int Project_Name = 2131099665;
+			
+			// aapt resource value: 0x7f060012
+			public const int Selection_List = 2131099666;
+			
+			// aapt resource value: 0x7f060013
+			public const int Setup_Address = 2131099667;
+			
+			// aapt resource value: 0x7f060015
+			public const int Setup_Key = 2131099669;
+			
+			// aapt resource value: 0x7f060014
+			public const int Setup_Port = 2131099668;
 			
 			static Id()
 			{
@@ -155,34 +158,37 @@ namespace Client
 			public const int Commands = 2130903040;
 			
 			// aapt resource value: 0x7f030001
-			public const int Console = 2130903041;
+			public const int Compile = 2130903041;
 			
 			// aapt resource value: 0x7f030002
-			public const int CreateCommand = 2130903042;
+			public const int Console = 2130903042;
 			
 			// aapt resource value: 0x7f030003
-			public const int CreateFile = 2130903043;
+			public const int Editor = 2130903043;
 			
 			// aapt resource value: 0x7f030004
-			public const int CreateProject = 2130903044;
+			public const int Empty = 2130903044;
 			
 			// aapt resource value: 0x7f030005
-			public const int Editor = 2130903045;
+			public const int Execute = 2130903045;
 			
 			// aapt resource value: 0x7f030006
-			public const int Empty = 2130903046;
+			public const int File = 2130903046;
 			
 			// aapt resource value: 0x7f030007
-			public const int ExecuteLayout = 2130903047;
+			public const int Login = 2130903047;
 			
 			// aapt resource value: 0x7f030008
-			public const int Login = 2130903048;
+			public const int Project = 2130903048;
 			
 			// aapt resource value: 0x7f030009
-			public const int SelectionDialog = 2130903049;
+			public const int Selection = 2130903049;
 			
 			// aapt resource value: 0x7f03000a
-			public const int Wait = 2130903050;
+			public const int Setup = 2130903050;
+			
+			// aapt resource value: 0x7f03000b
+			public const int Wait = 2130903051;
 			
 			static Layout()
 			{

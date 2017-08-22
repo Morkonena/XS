@@ -4,18 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="20dp"
-    android:minWidth="300dp"
-    android:id="@+id/linearLayout1">
+    android:minWidth="300dp">
     <EditText
         android:inputType="textNoSuggestions"
         android:hint="Nimi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/CreateCommandName" />
+        android:id="@+id/Compile_Name" />
     <EditText
-        android:inputType="textNoSuggestions|textNoSuggestions"
+        android:inputType="textNoSuggestions"
         android:hint="Kuvaus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/CreateCommandDescription" />
+        android:id="@+id/Compile_Description" />
 </LinearLayout>

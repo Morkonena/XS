@@ -1,10 +1,10 @@
 ﻿using System;
 using Android.App;
 
-using Client.Activities;
-using Client.Utilities;
+using XC.Activities;
+using XC.Utilities;
 
-namespace Client.Commands
+namespace XC.Commands
 {
     class CommandProcess
     {
@@ -15,17 +15,17 @@ namespace Client.Commands
 
         public Uid Id;
 
-        public CommandProcess (string command, string name, Uid id, bool open, Activity activity)
+        public CommandProcess (string command, string name, Uid id, bool open, RootActivity root)
         {
-            Console = new ConsoleActivity(activity, id, open);
+            Console = new ConsoleActivity(root, id, open);
             Command = command;
             Name = name;
             Id = id;
         }
 
-        public void Open ()
+        public void Show ()
         {
-            Console.Open();
+            Console.Show();
         }
 
         public void Append (string text)
@@ -40,10 +40,7 @@ namespace Client.Commands
 
         public void OnExit()
         {
-            // Pyydä palvelinta lopettamaan prosessi
             Connection.Send(MessageType.Stop, new StopRequest(Id));
-
-            // Poista tämä prosessi listalta
             CommandActivity.Running.Remove(this);        
         }
     }

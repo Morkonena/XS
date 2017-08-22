@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Client.Utilities
+namespace XC.Utilities
 {
     class Selection
     {
@@ -53,21 +53,14 @@ namespace Client.Utilities
             var builder = new AlertDialog.Builder(context);
             builder.SetTitle("Valitse kansio");
             builder.SetCancelable(false);
-            builder.SetView(Resource.Layout.SelectionDialog);
+            builder.SetView(Resource.Layout.Selection);
 
-            builder.SetPositiveButton("OK", (sender, arguments) =>
-            {
-                onComplete(path);
-            });
-
-            builder.SetNegativeButton("Peruuta", (sender, arguments) =>
-            {
-                onComplete(null);
-            });
+            builder.SetPositiveButton("OK", (sender, arguments) => onComplete(path));
+            builder.SetNegativeButton("Peruuta", (sender, arguments) => onComplete(null));
 
             var dialog = builder.Show();
 
-            var list = (ListView)dialog.FindViewById(Resource.Id.SelectionList);
+            var list = (ListView)dialog.FindViewById(Resource.Id.Selection_List);
             list.Adapter = new ArrayAdapter(context, Android.Resource.Layout.SimpleListItem1, items.Select(item => item.Name).ToArray());
 
             list.ItemClick += (Sender, Arguments) =>
@@ -92,7 +85,7 @@ namespace Client.Utilities
             };
         }
 
-        public static void SelectFile(Context context, string path, string title, Action<string> onComplete)
+        /*public static void SelectFile(Context context, string path, string title, Action<string> onComplete)
         {
             List<Item> items = GetItems(path);
             ListView list = null;
@@ -146,6 +139,6 @@ namespace Client.Utilities
                     list.Adapter = new ArrayAdapter(context, Android.Resource.Layout.SimpleListItem1, items.Select(item => item.Name).ToArray());
                 }
             };
-        }
+        }*/
     }
 }

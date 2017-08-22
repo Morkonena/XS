@@ -2,18 +2,22 @@
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
-
-using Client.Utilities;
+using Android.Widget;
+using XC.Utilities;
 
 using System;
 
-namespace Client.Activities
+using XC.Login;
+
+namespace XC.Activities
 {
     [Activity(Label = "Client", MainLauncher = true, Icon = "@drawable/icon", Theme = "@style/ClientTheme")]
-    public class Base : Activity
+    public class RootActivity : Activity
     {
         public const int PingCode = -1;
         public const int DisconnectionCode = -2;
+
+        public static Action Back { get; set; }
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -32,24 +36,43 @@ namespace Client.Activities
 
         public override void OnRequestPermissionsResult(int code, string[] permissions, Permission[] results)
         {
-            if (code == 1111)
+            foreach (var result in results)
             {
-                foreach (var result in results)
+                if (result != Permission.Granted)
                 {
-                    if (result != Permission.Granted)
-                    {
-                        OnDenied();
-                        return;
-                    }
+                    OnDenied();
+                    return;
                 }
-
-                Initialize();
             }
+
+            Initialize();
+        }
+
+        public override void OnBackPressed()
+        {
+            Back?.Invoke();
+        }
+
+        public void ShowDialog (string text, string title, bool cancelable = false)
+        {
+            var builder = new AlertDialog.Builder(this);
+            builder.SetTitle(title);
+            builder.SetMessage(text);
+            builder.SetCancelable(cancelable);
+
+            builder.SetPositiveButton("OK", (sender, arguments) => {});
+
+            RunOnUiThread(() => builder.Show());
+        }
+
+        public void ShowToast (string text)
+        {
+            RunOnUiThread(() => Toast.MakeText(this, text, ToastLength.Long).Show());
         }
 
         private void Request ()
         {
-            RequestPermissions(new string[] { Android.Manifest.Permission.WriteExternalStorage, Android.Manifest.Permission.ReadExternalStorage }, 1111);
+            RequestPermissions(new string[] { Android.Manifest.Permission.WriteExternalStorage, Android.Manifest.Permission.ReadExternalStorage }, 0);
         }
 
         private void OnDenied ()
@@ -80,8 +103,11 @@ namespace Client.Activities
             try
             {
                 EditorActivity.Initialize(this);
-                Cryptography.Initialize();
-                Connection.Initialize(this);
+
+                LoginActivity.Initialize(this, () =>
+                {
+                    Connection.Initialize(this);
+                });               
             }
             catch (Exception e)
             {

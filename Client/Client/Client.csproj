@@ -9,7 +9,7 @@
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Client</RootNamespace>
+    <RootNamespace>XC</RootNamespace>
     <AssemblyName>Client</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <AndroidApplication>True</AndroidApplication>
@@ -89,7 +89,7 @@
     <Compile Include="Utilities\Id.cs" />
     <Compile Include="Utilities\Selection.cs" />
     <Compile Include="Login\EncryptionInformation.cs" />
-    <Compile Include="Activities\Client.cs" />
+    <Compile Include="Activities\RootActivity.cs" />
     <Compile Include="Commands\StartRequest.cs" />
     <Compile Include="Activities\LoginActivity.cs" />
     <Compile Include="Login\LoginRequest.cs" />
@@ -122,16 +122,16 @@
     <AndroidResource Include="Resources\layout\Empty.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
-    <AndroidResource Include="Resources\layout\CreateFile.axml">
+    <AndroidResource Include="Resources\layout\File.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
-    <AndroidResource Include="Resources\layout\CreateCommand.axml">
+    <AndroidResource Include="Resources\layout\Compile.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
-    <AndroidResource Include="Resources\layout\ExecuteLayout.axml">
+    <AndroidResource Include="Resources\layout\Execute.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
-    <AndroidResource Include="Resources\layout\SelectionDialog.axml">
+    <AndroidResource Include="Resources\layout\Selection.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
@@ -144,10 +144,13 @@
     <None Include="Properties\AndroidManifest.xml">
       <SubType>Designer</SubType>
     </None>
-    <AndroidResource Include="Resources\layout\CreateProject.axml">
+    <AndroidResource Include="Resources\layout\Project.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
     <AndroidResource Include="Resources\layout\Console.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\Setup.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

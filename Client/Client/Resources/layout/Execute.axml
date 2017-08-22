@@ -8,36 +8,36 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/CommandDescription" />
+        android:id="@+id/Execute_Description" />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="60dp"
-        android:layout_below="@id/CommandDescription"
+        android:layout_below="@id/Execute_Description"
         android:layout_marginTop="16dp"
-        android:id="@+id/ProcessContainer">
+        android:id="@+id/Execute_Container">
         <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/ProcessList" />
+            android:id="@+id/Execute_List" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="Ei prosesseja"
             android:textStyle="bold"
-            android:id="@+id/NoProcesses" />
+            android:id="@+id/Execute_NoProcesses" />
     </RelativeLayout>
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/ProcessContainer"
+        android:layout_below="@id/Execute_Description"
         android:hint="Nimi"
-        android:id="@+id/ProcessName" />
+        android:id="@+id/Execute_Name" />
     <CheckBox
         android:text="Avaa konsoli"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/ProcessName"
-        android:id="@+id/ConsoleCheckbox" />
+        android:layout_below="@id/Execute_Name"
+        android:id="@+id/Execute_Console" />
 </RelativeLayout>

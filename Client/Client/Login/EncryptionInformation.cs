@@ -1,4 +1,4 @@
-﻿namespace Client.Login
+﻿namespace XC.Login
 {
     public class EncryptionInformation
     {

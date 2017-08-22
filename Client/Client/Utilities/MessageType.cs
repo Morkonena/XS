@@ -1,4 +1,4 @@
-﻿namespace Client.Utilities
+﻿namespace XC.Utilities
 {
     public enum MessageType
     {

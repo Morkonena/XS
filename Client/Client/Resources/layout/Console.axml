@@ -13,11 +13,11 @@
         android:textColor="#FFFFFFFF"
         android:imeOptions="actionSend"
         android:hint="Komento"
-        android:id="@+id/ConsoleInput" />
+        android:id="@+id/Console_Input" />
     <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/ConsoleInput"
+        android:layout_above="@id/Console_Input"
         android:layout_alignParentTop="true">
         <HorizontalScrollView
             android:layout_width="wrap_content"
@@ -30,7 +30,7 @@
                 android:background="#00000000"
                 android:textColor="#FFFFFFFF"
                 android:textSize="18sp"
-                android:id="@+id/ConsoleText" />
+                android:id="@+id/Console_Text" />
         </HorizontalScrollView>
     </ScrollView>
 </RelativeLayout>

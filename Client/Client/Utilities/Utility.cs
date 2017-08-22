@@ -1,6 +1,6 @@
 ﻿using XOS;
 
-namespace Client.Utilities
+namespace XC.Utilities
 {
     class Utility
     {

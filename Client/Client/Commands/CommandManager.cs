@@ -9,16 +9,16 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 
-using Client.Activities;
-using Client.Utilities;
-using Client.Downloading;
-using Client.Uploading;
+using XC.Activities;
+using XC.Utilities;
+using XC.Downloading;
+using XC.Uploading;
 
-namespace Client.Commands
+namespace XC.Commands
 {
     class CommandManager
     {
-        public static bool Process (Base application, ServerMessage message)
+        public static bool Process (RootActivity application, ServerMessage message)
         {
             switch (message.Type)
             {
@@ -33,14 +33,14 @@ namespace Client.Commands
                 {
                     var request = Utility.Convert<DownloadStartRequest>(message.Data);
 
-                    DownloadManager.StartAsync(application, request.Port, 100000, request.Filename);             
+                    DownloadManager.StartAsync(application, request.Port, 1000000, request.Filename);             
                     return true;
                 }
                 case MessageType.Upload:
                 {
                     var request = Utility.Convert<UploadStartRequest>(message.Data);
 
-                    UploadManager.StartAsync(application, request.Port, 100000, request.Filename);
+                    UploadManager.StartAsync(application, request.Port, 1000000, request.Filename);
                     return true;
                 }
             }

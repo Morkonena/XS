@@ -7,11 +7,11 @@ using Android.Content;
 using Android.Widget;
 using Android.Views;
 
-using Client.Commands;
-using Client.Utilities;
-using Client.Login;
+using XC.Commands;
+using XC.Utilities;
+using XC.Login;
 
-namespace Client.Activities
+namespace XC.Activities
 {
     class CommandActivity : Alias
     {
@@ -25,13 +25,12 @@ namespace Client.Activities
 
         private ListView CommandList;
 
-        public CommandActivity (Activity activity) : base(activity)
+        public CommandActivity (RootActivity root) : base(root)
         {
-            // Alusta komento aktiviteetti
             Initialize();
         }
 
-        public CommandActivity (byte[] bytes, Activity activity) : base(activity)
+        public CommandActivity (byte[] bytes, RootActivity root) : base(root)
         {
             try
             {
@@ -39,77 +38,72 @@ namespace Client.Activities
             }
             catch (Exception e)
             {
-                ShowDialog("Komentopaketin purkaminen epäonnistui: " + e.ToString(), "Virhe");
+                ShowError(e);
                 return;
             }
 
-            // Alusta komento aktiviteetti
             Initialize();
         }
 
         private void Initialize ()
         {
-            SetContentView(Resource.Layout.Commands); // Määritä pääikkunan sisältö
+            SetContentView(Resource.Layout.Commands);
 
-            Find(Resource.Id.CommandAdd).Click += OnProjectManagement;
+            Find<Button>(Resource.Id.Commands_Add).Click += OnProjectManagement;
 
-            // Määritä komentolistan toiminnot
-            CommandList = (ListView)Find(Resource.Id.CommandList);      
-            CommandList.ItemClick += (Sender, Arguments) => { OnCommandSelected(Commands[Arguments.Position]); };
-            CommandList.ItemLongClick += (Sender, Arguments) => { OnDeleteCommand(Commands[Arguments.Position].Name); };
+            CommandList = Find<ListView>(Resource.Id.Commands_List);      
 
-            // Päivitä komentolista
+            CommandList.ItemClick += (Sender, Arguments) => OnCommandSelected(Commands[Arguments.Position]);
+            CommandList.ItemLongClick += (Sender, Arguments) => OnDeleteCommand(Commands[Arguments.Position].Name);
+
             Refresh();
         }
 
         private void Refresh()
         {
-            // Tarkista, että suoritettavia komentoja on olemassa
             if (Commands.Count == 0)
             {
-                Find(Resource.Id.CommandsNone).Visibility = ViewStates.Visible; // Näytä 'Yhtään komentoa ei löytynyt' teksti
-                CommandList.Adapter = null; // Poista listalta valinnat
+                Find<TextView>(Resource.Id.Commands_None).Visibility = ViewStates.Visible; // Näytä 'Yhtään komentoa ei löytynyt' teksti
+                CommandList.Adapter = null; 
             }
             else
             {
-                CommandList.Adapter = new ArrayAdapter(GetActivity(), Android.Resource.Layout.SimpleListItem1, Commands.Select(Command => Command.Name).ToArray()); // Aseta listalle valinnat
+                CommandList.Adapter = new ArrayAdapter(GetContext(), Android.Resource.Layout.SimpleListItem1, Commands.Select(Command => Command.Name).ToArray()); // Aseta listalle valinnat
             }
         }
 
         private void OnProjectManagement(object a, EventArgs b)
         {
-            var Builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
 
-            // Laita ikkunan vaihtoehdoiksi 'Luo', 'Avaa' ja 'Poista'
-            Builder.SetAdapter(new ArrayAdapter(GetActivity(), Android.Resource.Layout.SimpleListItem1, new string[] { "Luo", "Avaa", "Poista" }), (Sender, Arguments) =>
+            builder.SetAdapter(new ArrayAdapter(GetContext(), Android.Resource.Layout.SimpleListItem1, new string[] { "Luo", "Avaa", "Poista" }), (sender, arguments) =>
             {
-                switch (Arguments.Which)
+                switch (arguments.Which)
                 {
                     case 0:
                     {
-                        OnCreateProject(); // Luo uusi projekti
+                        OnCreateProject();
                         break;
                     }
                     case 1:
                     {
-                        OnOpenProject(); // Avaa projekti
+                        OnOpenProject();
                         break;
                     }
                     case 2:
                     {
-                        OnDeleteProject(); // Poista projekti
+                        OnDeleteProject();
                         break;
                     }                    
                 }
             });
 
-            Builder.Show();
+            builder.Show();
         }
 
         private void OnCreateProject ()
         {
-            // Anna käyttäjän valita minne kansioon projekti luodaan
-            Selection.SelectFolder(GetActivity(), Selection.InternalStorage, (string Folder) =>
+            Selection.SelectFolder(GetContext(), Selection.InternalStorage, (string Folder) =>
             {            
                 if (Folder != null)
                 {
@@ -120,24 +114,23 @@ namespace Client.Activities
 
         private void OnProjectName (string Folder)
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle("Luo");
-            builder.SetView(Resource.Layout.CreateProject);
+            builder.SetView(Resource.Layout.Project);
 
             builder.SetPositiveButton("OK", (Sender, Arguments) =>
             {
-                var name = ((EditText)((AlertDialog)Sender).FindViewById(Resource.Id.CreateProject_Name)).Text;
+                var name = ((EditText)((AlertDialog)Sender).FindViewById(Resource.Id.Project_Name)).Text;
 
-                // Tarkista, ettei nimi ole tyhjä
                 if (string.IsNullOrEmpty(name))
                 {
-                    ShowToast("Nimi kenttä ei voi olla tyhjä!");
+                    ShowToast("Nimi ei voi olla tyhjä!");
                     return;
                 }
 
                 try
                 {
-                    Directory.CreateDirectory(Folder + "/" + name); // Luo projekti kansio
+                    Directory.CreateDirectory(Folder + "/" + name); 
                 }
                 catch (Exception e)
                 {
@@ -145,7 +138,7 @@ namespace Client.Activities
                     return;
                 }
 
-                new EditorActivity(GetActivity(), Folder + "/" + name); // Avaa editori äskettäin luodusta kansiosta
+                new EditorActivity(GetRoot(), Folder + "/" + name); 
             });
 
             builder.SetNegativeButton("Peruuta", (Sender, Arguments) => {}); 
@@ -154,32 +147,28 @@ namespace Client.Activities
 
         private void OnOpenProject ()
         {
-            // Valitse kansio missä projekti sijaitsee
-            Selection.SelectFolder(GetActivity(), Selection.InternalStorage, (string Path) =>
+            Selection.SelectFolder(GetContext(), Selection.InternalStorage, (path) =>
             {
-                // Tarkista, ettei käyttäjä peruuttanut
-                if (Path != null)
+                if (path != null)
                 {
-                    new EditorActivity(GetActivity(), Path);
+                    new EditorActivity(GetRoot(), path);
                 }
             });
         }
 
         private void OnDeleteProject ()
         {
-            // Anna käyttäjän valita kansio missä projekti sijaitsee
-            Selection.SelectFolder(GetActivity(), Selection.InternalStorage, (string Path) =>
+            Selection.SelectFolder(GetContext(), Selection.InternalStorage, (path) =>
             {
-                // Tarkista, ettei käyttäjä peruuttanut;
-                if (Path != null)
+                if (path != null)
                 {
                     try
                     {
-                        Directory.Delete(Path, true); // Poista valittu kansio
+                        Directory.Delete(path, true); 
                     }
                     catch (Exception e)
                     {
-                        ShowDialog("Projekti kansion poistaminen epäonnistui: " + e.ToString(), "Virhe");
+                        ShowError(e);
                     }
                 }       
             });
@@ -187,20 +176,17 @@ namespace Client.Activities
 
         private void OnDeleteCommand (string Name)
         {
-            AlertDialog.Builder Builder = new AlertDialog.Builder(GetActivity());
+            AlertDialog.Builder Builder = new AlertDialog.Builder(GetContext());
             Builder.SetTitle("Poista"); 
             Builder.SetMessage("Haluatko varmasti poistaa tämän komennon?");
 
             Builder.SetPositiveButton("Kyllä", (Sender, Arguments) =>
             {
-                // Poista komento listasta ja lopeta kaikki prosessit, jotka käyttävät poistettavaa komentoa
                 Commands.RemoveAll(command => command.Name == Name);
                 Running.RemoveAll(Process => Process.Command == Name);
                
-                // Päivitä komentolista
                 Refresh();
 
-                // Pyydä palvelinta poistamaan komento
                 Connection.Send(MessageType.Delete, new DeleteRequest(Name));
             }); 
 
@@ -210,68 +196,59 @@ namespace Client.Activities
 
         private void OnCommandSelected (CommandInfo command)
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle(command.Name);
-            builder.SetView(Resource.Layout.ExecuteLayout);
+            builder.SetView(Resource.Layout.Execute);
 
-            builder.SetPositiveButton("Aloita", (Sender, Arguments) =>
+            builder.SetPositiveButton("Aloita", (sender, arguments) =>
             {
-                var name = ((EditText)((AlertDialog)Sender).FindViewById(Resource.Id.ProcessName)).Text;
-                var open = ((CheckBox)((AlertDialog)Sender).FindViewById(Resource.Id.ConsoleCheckbox)).Checked;
+                var name = ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Execute_Name).Text;
+                var open = ((AlertDialog)sender).FindViewById<CheckBox>(Resource.Id.Execute_Console).Checked;
 
-                // Tarkista, ettei nimi ole tyhjä
                 if (string.IsNullOrEmpty(name))
                 {
-                    ShowToast("Nimi kenttä ei voi olla tyhjä!");
+                    ShowToast("Nimi ei voi olla tyhjä!");
                     return;
                 }
 
                 OnStart(command, name, open);
             });
 
-            var dialog = builder.Show();
-            var processes = Running.Where(Process => (Process.Command == command.Name)).ToArray(); // Etsi kaikki prosessit, jotka käyttävät valittua komentoa
+            builder.SetNegativeButton("Peruuta", (sender, arguments) => { });
 
-            // Tarkista, että prosesseja löytyi
+            var dialog = builder.Show();
+            var processes = Running.Where(Process => (Process.Command == command.Name)).ToArray(); 
+
             if (processes.Length > 0)
             {
-                ((TextView)dialog.FindViewById(Resource.Id.NoProcesses)).Visibility = ViewStates.Invisible; // Piilota 'Ei prosesseja' teksti
+                dialog.FindViewById<TextView>(Resource.Id.Execute_NoProcesses).Visibility = ViewStates.Invisible; 
 
-                var list = (ListView)dialog.FindViewById(Resource.Id.ProcessList);
-                list.Adapter = new ArrayAdapter(GetActivity(), Android.Resource.Layout.SimpleListItem1, processes.Select(Process => Process.Name).ToArray()); // Määritä prosessilistan valinnat
+                var list = dialog.FindViewById<ListView>(Resource.Id.Execute_List);
 
-                // Määritä prosessin avaaminen
-                list.ItemClick += (sender, arguments) =>
-                {
-                    processes[arguments.Position].Open();
-                };
-
-                // Määritä prosessin lopettaminen 
-                list.ItemLongClick += (sender, arguments) =>
-                {
-                    OnStopProcess(processes[arguments.Position], dialog);
-                };
+                list.Adapter = new ArrayAdapter(GetContext(), Android.Resource.Layout.SimpleListItem1, processes.Select(process => process.Name).ToArray()); 
+                list.ItemClick += (sender, arguments) => processes[arguments.Position].Show();
+                list.ItemLongClick += (sender, arguments) => OnStopProcess(processes[arguments.Position], dialog);
             }
 
             if (command.Description.Length > 0)
             {
-                ((TextView)dialog.FindViewById(Resource.Id.CommandDescription)).Text = command.Description;
+                dialog.FindViewById<TextView>(Resource.Id.Compile_Description).Text = command.Description;
             }       
         }
 
-        private void OnStopProcess (CommandProcess Process, AlertDialog Dialog)
+        private void OnStopProcess (CommandProcess process, AlertDialog dialog)
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle("Sulje");
             builder.SetMessage("Haluatko varmasti sulkea tämän prosessin?");
 
-            builder.SetPositiveButton("Kyllä", (Sender, Arguments) =>
+            builder.SetPositiveButton("Kyllä", (sender, arguments) =>
             {
-                Process.OnExit(); // Lopeta prosessi
-                Dialog.Dismiss(); // Sulje komentoikkuna
+                process.OnExit(); 
+                dialog.Dismiss();
             });
 
-            builder.SetNegativeButton("Ei", (Sender, Arguments) => {});
+            builder.SetNegativeButton("Ei", (sender, arguments) => {});
             builder.Show();
         }
 
@@ -283,8 +260,7 @@ namespace Client.Activities
                 {
                     case MessageType.Succeeded:
                     {
-                        // Lisää prosesseihin uusi prosessi
-                        Running.Add(new CommandProcess(command.Name, name, Utility.Convert<StartRespond>(data).Id, open, GetActivity()));
+                        Running.Add(new CommandProcess(command.Name, name, Utility.Convert<StartRespond>(data).Id, open, GetRoot()));
                         break;
                     }
                     case MessageType.Failed:
@@ -300,7 +276,6 @@ namespace Client.Activities
                 }
             };
 
-            // Pyydä palvelinta aloittamaan prosessi
             Connection.Send(MessageType.Start, new StartRequest(command.Name));
         }
     }

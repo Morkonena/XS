@@ -4,12 +4,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-using Client.Commands;
-using Client.Login;
-using Client.Uploading;
-using Client.Utilities;
+using XC.Commands;
+using XC.Login;
+using XC.Uploading;
+using XC.Utilities;
 
-namespace Client.Activities
+namespace XC.Activities
 {
     class Connection
     {
@@ -19,66 +19,71 @@ namespace Client.Activities
 
         public static Action<MessageType, byte[]> Callback { get; set; }
 
-        public static int BufferSize { get { return Device.SendBufferSize; } }
-
-        public static void Initialize (Base application)
+        public static void Initialize (RootActivity root)
         {
             new Thread(() =>
             {
-                Device = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Device.Connect(new IPEndPoint(IPAddress.Parse("XX.XXX.XXX.XXX"), 1111));
-
-                ConnectionInfo = Device.RemoteEndPoint as IPEndPoint;
-                
-                // Vastaanota suojaustiedot ja tarkista, että se onnistui
-                if (!InitializeEncryption(application))
+                while (true)
                 {
-                    return;
+                    try
+                    {
+                        Device = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        Device.Connect(ConnectionInfo);
+
+                        InitializeEncryption();
+                    }
+                    catch
+                    {
+                        Thread.Sleep(5000);
+
+                        root.ShowToast("Yritetään uudestaan...");
+                        continue;
+                    }
+
+                    break;
                 }
 
-                // Käynnistä kirjautumisaktiviteetti
-                application.RunOnUiThread(() => { new LoginActivity(application); });
-
+                try
+                {
+                    root.RunOnUiThread(() => new LoginActivity(root));
+                }
+                catch (Exception e)
+                {
+                    root.ShowDialog(e.ToString(), "Virhe");
+                    return;
+                }
+             
                 while (true)
                 {
                     try
                     {
                         if (Device.Available >= 4)
                         {
-                            // Odota kunnes uusi viesti on saapumassa
-                            while (Device.Available < 4)
-                            {
-                                Thread.Sleep(100);
-                            }
-
-                            // Tulevan viestin koko
                             var length = BitConverter.ToInt32(Receive(4), 0);
 
-                            // Tarkista, jos viesti onkin vain 'Ping'
-                            if (length == Base.PingCode)
+                            if (length == RootActivity.PingCode)
                             {
                                 Connection.Device.Send(BitConverter.GetBytes(-1));
                                 continue;
                             }
-                            else if (length == Base.DisconnectionCode)
+                            else if (length == RootActivity.DisconnectionCode)
                             {
                                 Disconnect(false);
-                                ShowDialog(application, "Palvelin katkaisi yhteyden", "Yhteys katkaistu");
+
+                                root.ShowToast("Yhteys katkaistu!");
                                 return;
                             }
 
-                            // Odota kunnes kaikki tieto on saapunut
                             while (Device.Available < length)
                             {
                                 Thread.Sleep(100);
                             }
 
-                            // Pura tavujen salaus ja muunna ne 'ServerMessage' objektiksi
                             var message = Cryptography.DecryptMessage(Receive(length));
 
-                            if (!CommandManager.Process(application, message) && Callback != null)
+                            if (!CommandManager.Process(root, message) && Callback != null)
                             {
-                                application.RunOnUiThread(() =>
+                                root.RunOnUiThread(() =>
                                 {
                                     try
                                     {
@@ -87,7 +92,7 @@ namespace Client.Activities
                                     catch (Exception e)
                                     {
                                         Disconnect(true);
-                                        ShowDialog(application, "Vastauksen suorittaminen epäonnistui: " + e.ToString(), "Yhteys katkaistu");
+                                        root.ShowDialog(e.ToString(), "Virhe");
                                     }                                  
                                 });
                             }
@@ -95,9 +100,8 @@ namespace Client.Activities
                     }
                     catch (Exception e)
                     {     
-                        // Odottamaton kaatuminen: Sulje yhteys ja näytä virhe raportti
                         Disconnect(true);
-                        OnUnexceptedCrash(application, e);
+                        OnUnexceptedCrash(root, e);
                         break;
                     }
                 }
@@ -105,73 +109,37 @@ namespace Client.Activities
             }).Start();
         }
 
-        private static void ShowDialog (Base b, string text, string title, bool cancelable = false)
+        private static void OnUnexceptedCrash (RootActivity root, Exception e)
         {
-            var Builder = new AlertDialog.Builder(b);
-            Builder.SetTitle(title);
-            Builder.SetMessage(text);
-            Builder.SetCancelable(cancelable);
-            Builder.SetPositiveButton("OK", (Sender, Arguments) => { });
-            Builder.Show();
-        }
-
-        private static void OnUnexceptedCrash (Base application, Exception error)
-        {
-            application.RunOnUiThread(() =>
+            root.RunOnUiThread(() =>
             {
-                ShowDialog(application, error.ToString(), "Yhteys katkaistu");
+                root.ShowDialog(e.ToString(), "Virhe");
             });
         }
 
         private static byte[] Receive (int length)
         {
-            // Vastaanota 'Length' määrä tavuja
             var buffer = new byte[length];
             Device.Receive(buffer);
 
             return buffer;
         }
 
-        private static bool InitializeEncryption (Base client)
+        private static void InitializeEncryption ()
+        {
+            while (Device.Available < 4) {}
+
+            var length = BitConverter.ToInt32(Receive(4), 0);
+            while (Device.Available < length) {}
+
+            Encryption = Utility.Convert<EncryptionInformation>(Cryptography.Decrypt(Receive(length), Cryptography.GK, null));
+        }
+
+        public static void Send (MessageType type, object data)
         {
             try
             {
-                while (Device.Available < 4) ;
-
-                var length = BitConverter.ToInt32(Receive(4), 0);
-                while (Device.Available < length) ;
-
-                Encryption = Utility.Convert<EncryptionInformation>(Cryptography.Decrypt(Receive(length), Cryptography.GeneralKeyBytes, Cryptography.GeneralIVBytes));
-            }
-            catch (Exception e)
-            {
-                var builder = new AlertDialog.Builder(client);
-                builder.SetTitle("Virhe");
-                builder.SetMessage("Suojaustietojen vastaanottaminen epäonnistui: " + e.ToString());
-                builder.SetCancelable(false);
-
-                builder.SetPositiveButton("OK", (Sender, Arguments) => { });
-
-                builder.Show();
-
-                return false;
-            }
-
-            return (Encryption != null);
-        }
-
-        public static bool Send (MessageType type, object data)
-        {          
-            try
-            {
-                var message = new ClientMessage(type);
-                byte[] buffer;
-
-                if ((data != null && (message.Data = Utility.Convert(data)) == null) ||
-                    (buffer = Cryptography.EncryptMessage(message)) == null)
-                {
-                    return false;
-                }
+                var buffer = Cryptography.EncryptMessage(new ClientMessage(type, data));
 
                 Device.Send(BitConverter.GetBytes(buffer.Length));
                 Device.Send(buffer);
@@ -179,31 +147,27 @@ namespace Client.Activities
             catch (Exception e)
             {
                 Disconnect(false);
-                return false;
-            }
-
-            return true;
+            }        
         }
 
         public static void Disconnect(bool notify)
         {
-            // Tarkista, jos yhteyden katkaisemisesta halutaan ilmoittaa
             if (notify)
             {
                 try
                 {
-                    Device.Send(BitConverter.GetBytes(Base.DisconnectionCode)); // Lähetä yhteyden katkaisu käsky
+                    Device.Send(BitConverter.GetBytes(RootActivity.DisconnectionCode)); 
                 }
                 catch {}              
             }
                          
             try
             {      
-                Device.Close(); // Sulje yhteys
+                Device.Close();
             }
             catch {}
 
-            Device = null; // Poista yhteys
+            Device = null;
         }
     }
 }

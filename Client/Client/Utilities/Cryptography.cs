@@ -1,26 +1,17 @@
 ﻿using System.Text;
 using System.Security.Cryptography;
 
-using Client.Activities;
+using XC.Activities;
 
-namespace Client.Utilities
+namespace XC.Utilities
 {
     class Cryptography
     {
-        public const string GeneralKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-        public static byte[] GeneralKeyBytes;
+        public static byte[] GK;
 
-        public static byte[] GeneralIVBytes = new byte[16]
+        public static void Initialize (string key)
         {
-            0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0
-        };
-
-        public static void Initialize()
-        {
-            GeneralKeyBytes = Encoding.UTF8.GetBytes(GeneralKey);
+            GK = Encoding.UTF8.GetBytes(key);
         }
 
         public static byte[] Encrypt (byte[] buffer, byte[] key, byte[] iv)
@@ -33,13 +24,13 @@ namespace Client.Utilities
             return Crypt(buffer, key, iv, false);
         }
 
-        private static byte[] Crypt (byte[] buffer, byte[] key, byte[] ïv, bool encrypt)
+        private static byte[] Crypt (byte[] buffer, byte[] key, byte[] iv, bool encrypt)
         {
             var device = new AesManaged();
             device.BlockSize = 128;
             device.KeySize = 256;
             device.Key = key;
-            device.IV = ïv;
+            device.IV = iv;
             device.Mode = CipherMode.CBC;
             device.Padding = PaddingMode.PKCS7;
 

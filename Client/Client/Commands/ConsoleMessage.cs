@@ -1,14 +1,14 @@
 ﻿using System;
-using Client.Utilities;
+using XC.Utilities;
 
-namespace Client.Commands
+namespace XC.Commands
 {
     class ConsoleMessage
     {
         public Uid Id;
         public string Text;
 
-        public ConsoleMessage () { }
+        public ConsoleMessage () {}
         public ConsoleMessage (Uid id, string text)
         {
             Id = id;

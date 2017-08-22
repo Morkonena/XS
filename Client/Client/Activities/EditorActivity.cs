@@ -12,11 +12,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Client.Commands;
-using Client.Login;
-using Client.Utilities;
+using XC.Commands;
+using XC.Login;
+using XC.Utilities;
 
-namespace Client.Activities
+namespace XC.Activities
 {
     class EditorActivity : Alias
     {
@@ -79,6 +79,7 @@ namespace Client.Activities
             new Highlight("const", HighlightColor),
             new Highlight("continue", HighlightColor),
             new Highlight("decimal", HighlightColor),
+            new Highlight("default", HighlightColor),
             new Highlight("delegate", HighlightColor),
             new Highlight("double", HighlightColor),
             new Highlight("do", HighlightColor),
@@ -118,6 +119,7 @@ namespace Client.Activities
             new Highlight("ulong", HighlightColor),
             new Highlight("ushort", HighlightColor),
             new Highlight("using", HighlightColor),
+            new Highlight("var", HighlightColor),
             new Highlight("virtual", HighlightColor),
             new Highlight("void", HighlightColor),
             new Highlight("while", HighlightColor),
@@ -138,12 +140,17 @@ namespace Client.Activities
                                                "{" + "\n" +
                                                "   public override void OnStart ()" + "\n" +
                                                "   {" + "\n" +
-                                               "      // Called at the beggining" + "\n" +
+                                               "      " + "\n" +
+                                               "   }" + "\n" +
+                                               "\n" +
+                                               "   public override void OnInput (string input)" + "\n" +
+                                               "   {" + "\n" +
+                                               "      " + "\n" +
                                                "   }" + "\n" +
                                                "\n" +
                                                "   public override void OnExit ()" + "\n" +
                                                "   {" + "\n" +
-                                               "      // Called when command should stop" + "\n" +
+                                               "      " + "\n" +
                                                "   }" + "\n" +
                                                "}";
 
@@ -153,12 +160,12 @@ namespace Client.Activities
          *
          */
 
-        public static void Initialize (Activity activity)
+        public static void Initialize (RootActivity root)
         {         
-            Font = Typeface.CreateFromAsset(activity.Assets, "Consolas.ttf"); // Määritä fontiksi 'Consolas'
+            Font = Typeface.CreateFromAsset(root.Assets, "Consolas.ttf"); // Määritä fontiksi 'Consolas'
         }
 
-        public EditorActivity (Activity activity, string root) : base(activity)
+        public EditorActivity (RootActivity activity, string root) : base(activity)
         {
             Root = root;
             Start();
@@ -168,7 +175,7 @@ namespace Client.Activities
         {
             SetContentView(Resource.Layout.Editor);
 
-            Field = (EditText)Find(Resource.Id.EditorField);
+            Field = Find<EditText>(Resource.Id.Editor_Text);
             Field.SetTypeface(Font, TypefaceStyle.Normal);
            
             var start = 0;
@@ -190,7 +197,7 @@ namespace Client.Activities
                 }
                 catch (System.Exception e)
                 {
-                    ShowDialog(e.ToString(), "Virhe");
+                    ShowError(e);
                 }            
             };
 
@@ -248,11 +255,11 @@ namespace Client.Activities
                 }
                 catch (System.Exception e)
                 {
-                    ShowDialog(e.ToString(), "Virhe");
+                    ShowError(e);
                 }
             };
 
-            Find(Resource.Id.EditorUtility).Click += OnEditorUtility;
+            Find<ImageView>(Resource.Id.Editor_Options).Click += OnEditorOptions;
 
             try
             {
@@ -270,7 +277,7 @@ namespace Client.Activities
             }
             catch (Exception e)
             {
-                ShowDialog("Projektin avaamisessa tapahtui virhe: " + e.ToString(), "Virhe");
+                ShowError(e);
             }        
         }
 
@@ -364,7 +371,7 @@ namespace Client.Activities
             }
             catch (System.Exception e)
             {
-                ShowDialog("Tiedoston tallentaminen epäonnistui: " + e.ToString(), "Virhe");
+                ShowError(e);
             }
 
             onFinished?.Invoke();
@@ -378,7 +385,7 @@ namespace Client.Activities
             }
             catch (System.Exception e)
             {
-                ShowDialog("Tiedoston avaaminen epäonnistui: " + e.ToString(), "Virhe");
+                ShowError(e);
             }       
         }
 
@@ -469,7 +476,7 @@ namespace Client.Activities
             }
             catch (System.Exception e)
             {
-                ShowDialog(e.ToString(), "Virhe");
+                ShowError(e);
             } 
         }
 
@@ -491,9 +498,9 @@ namespace Client.Activities
          * 
          */ 
 
-        private void OnEditorUtility (object sender, System.EventArgs e)
+        private void OnEditorOptions (object sender, System.EventArgs e)
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             
             builder.SetItems(new string[] { "Tiedostot", "Rakenna", "Sulje" }, (list, arguments) =>
             {
@@ -522,13 +529,13 @@ namespace Client.Activities
 
         private void OnCreateFile ()
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle("Luo tiedosto");
-            builder.SetView(Resource.Layout.CreateFile);
+            builder.SetView(Resource.Layout.File);
             
             builder.SetPositiveButton("OK", (sender, arguments) =>
             {
-                var name = ((EditText)((AlertDialog)sender).FindViewById(Resource.Id.CreateFileField)).Text;
+                var name = ((EditText)((AlertDialog)sender).FindViewById(Resource.Id.File_Name)).Text;
 
                 if (string.IsNullOrEmpty(name))
                 {
@@ -557,7 +564,7 @@ namespace Client.Activities
                     }
                     catch (System.Exception e)
                     {
-                        ShowDialog("Tiedoston luominen epäonnistui: " + e.ToString(), "Virhe");
+                        ShowError(e);
                     }
                 });
             });
@@ -568,7 +575,7 @@ namespace Client.Activities
 
         private void OnDeleteFile (string name, AlertDialog dialog)
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle("Poista");
             builder.SetMessage("Haluatko varmasti poistaa tämän tiedoston?");
 
@@ -582,7 +589,7 @@ namespace Client.Activities
                 }
                 catch (System.Exception e)
                 {
-                    ShowDialog("Tiedoston poistaminen epäonnistui: " + e.ToString(), "Virhe");
+                    ShowError(e);
                 }
             });
 
@@ -594,17 +601,17 @@ namespace Client.Activities
         {
             var items = new DirectoryInfo(Root).GetFiles();
 
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle("Tiedostot");
-            builder.SetView(Resource.Layout.SelectionDialog);
+            builder.SetView(Resource.Layout.Selection);
 
             builder.SetPositiveButton("Luo", (Sender, Arguments) => { OnCreateFile(); });
             builder.SetNegativeButton("Peruuta", (Sender, Arguments) => { });
 
             var dialog = builder.Show();
 
-            var list = (ListView)dialog.FindViewById(Resource.Id.SelectionList);
-            list.Adapter = new ArrayAdapter(GetActivity(), Android.Resource.Layout.SimpleListItem1, items.Select(File => File.Name).ToArray());
+            var list = (ListView)dialog.FindViewById(Resource.Id.Selection_List);
+            list.Adapter = new ArrayAdapter(GetContext(), Android.Resource.Layout.SimpleListItem1, items.Select(File => File.Name).ToArray());
 
             list.ItemClick += (Sender, Arguments) =>
             {
@@ -620,9 +627,9 @@ namespace Client.Activities
 
         private void OnCompile()
         {
-            var builder = new AlertDialog.Builder(GetActivity());
+            var builder = new AlertDialog.Builder(GetContext());
             builder.SetTitle("Rakenna");
-            builder.SetView(Resource.Layout.CreateCommand);
+            builder.SetView(Resource.Layout.Compile);
             
             builder.SetPositiveButton("OK", (sender, arguments) =>
             {
@@ -631,9 +638,9 @@ namespace Client.Activities
                     var dialog = (AlertDialog)sender;
 
                     var request = new CreateRequest();
-                    request.Description = ((EditText)dialog.FindViewById(Resource.Id.CreateCommandDescription)).Text;
+                    request.Description = ((EditText)dialog.FindViewById(Resource.Id.Compile_Description)).Text;
 
-                    if (string.IsNullOrEmpty((request.Name = ((EditText)dialog.FindViewById(Resource.Id.CreateCommandName)).Text)))
+                    if (string.IsNullOrEmpty((request.Name = ((EditText)dialog.FindViewById(Resource.Id.Compile_Name)).Text)))
                     {
                         ShowToast("Kaikki kentät täytyy olla täytettyinä!");
                         return;
@@ -668,7 +675,7 @@ namespace Client.Activities
                 }
                 catch (System.Exception e)
                 {
-                    ShowDialog("Rakennuspyynnön lähettäminen epäonnistui: " + e.ToString(), "Virhe");
+                    ShowError(e);
                 }   
             });
 
@@ -678,7 +685,7 @@ namespace Client.Activities
 
         private void OnClose ()
         {
-            new CommandActivity(GetActivity());
+            new CommandActivity(GetRoot());
         }
     }
 }

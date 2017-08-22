@@ -1,7 +1,7 @@
 ﻿using System;
-using Client.Utilities;
+using XC.Utilities;
 
-namespace Client.Downloading
+namespace XC.Downloading
 {
     class DownloadStartRequest
     {

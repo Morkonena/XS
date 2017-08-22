@@ -6,34 +6,13 @@ namespace Server
 {
     class Cryptography
     {
-        public const string MasterKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-        public const string GeneralKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-
-        public static byte[] MasterKeyBytes;
-        public static byte[] GeneralKeyBytes;
-
-        public static byte[] MasterIVBytes = new byte[16]
-        {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0
-        };
-
-        public static byte[] GeneralIVBytes = new byte[16]
-        {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0
-        };
+        public static byte[] GK;
 
         public static RandomNumberGenerator Generator = RandomNumberGenerator.Create();
 
-        public static void Initialize ()
+        public static void Initialize (char[] buffer)
         {
-            MasterKeyBytes = Encoding.UTF8.GetBytes(MasterKey);
-            GeneralKeyBytes = Encoding.UTF8.GetBytes(GeneralKey);
+            GK = Encoding.UTF8.GetBytes(buffer);
         }
 
         public static byte[] Encrypt(byte[] buffer, byte[] key, byte[] iv)

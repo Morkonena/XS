@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.Win32;
 
 namespace Server
@@ -10,6 +11,28 @@ namespace Server
         public const string Temporary = "C:\\Server\\Temporary";
 
         public static RegistryKey Prefrences;
+
+        public static string CreateKey ()
+        {
+            var generator = new Random(BitConverter.ToInt32(Cryptography.Generate(4), 0));
+            var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+
+            var buffer = new char[32];
+
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = symbols[generator.Next(0, symbols.Length)];
+
+                if (i % 4 == 0)
+                {
+                    Console.Title += "-";
+                }
+
+                Console.Title += buffer[i];            
+            }
+
+            return buffer.ToString();
+        }
 
         public static void Initialize ()
         {
@@ -36,6 +59,8 @@ namespace Server
                 Server.Print("Creating registry keys...");
                 Prefrences = Registry.CurrentUser.CreateSubKey("Software\\XS");
             }               
+
+            
         }
     }
 }

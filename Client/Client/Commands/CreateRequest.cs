@@ -1,4 +1,4 @@
-﻿namespace Client.Commands
+﻿namespace XC.Commands
 {
     class VirtualFile
     {

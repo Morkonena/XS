@@ -1,7 +1,7 @@
 ﻿using System;
-using Client.Utilities;
+using XC.Utilities;
 
-namespace Client.Commands
+namespace XC.Commands
 {
     class StopRequest
     {

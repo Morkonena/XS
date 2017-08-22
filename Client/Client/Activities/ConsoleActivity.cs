@@ -5,32 +5,32 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using Client.Commands;
-using Client.Utilities;
+using XC.Commands;
+using XC.Utilities;
 
-namespace Client.Activities
+namespace XC.Activities
 {
     class ConsoleActivity : Alias
     {
-        private Queue<string> InputQueue = new Queue<string>();
-        private Queue<string> OutputQueue = new Queue<string>();
+        private Queue<string> Input = new Queue<string>();
+        private Queue<string> Output = new Queue<string>();
 
-        private Thread QueueThread;
+        private Thread Worker;
 
-        private bool isOpen = true;
+        private bool Open = true;
 
         private TextView Text;
-        private EditText Input;
+        private EditText Field;
 
         private Uid Id;
        
-        public ConsoleActivity (Activity activity, Uid id, bool open) : base(activity)
+        public ConsoleActivity (RootActivity root, Uid id, bool open) : base(root)
         {
             Id = id;
 
             if (open)
             {
-                Open();
+                Show();
             }
         }
 
@@ -48,22 +48,22 @@ namespace Client.Activities
 
         private void Queue ()
         {
-            while (isOpen)
+            while (Open)
             {
                 Thread.Sleep(16);
 
-                int count = InputQueue.Count;
+                var count = Input.Count;
                 
                 if (count > 0)
                 {
-                    string text = Combine(InputQueue, count);
+                    var text = Combine(Input, count);
 
                     RunOnUiThread(() => { Text.Text += text; });
                 }
 
-                if ((count = OutputQueue.Count) > 0)
+                if ((count = Output.Count) > 0)
                 {
-                    string text = Combine(OutputQueue, count);
+                    var text = Combine(Output, count);
 
                     RunOnUiThread(() => { Text.Text += text; });
                 }            
@@ -72,47 +72,47 @@ namespace Client.Activities
 
         public void Append (string text)
         {
-            OutputQueue.Enqueue(text + "\n");
+            Output.Enqueue(text);
         }
 
-        public void Open ()
+        public void Show ()
         {
             SetContentView(Resource.Layout.Console);
 
-            Text = (TextView)Find(Resource.Id.ConsoleText);
-            Input = (EditText)Find(Resource.Id.ConsoleInput);
+            Text = Find<TextView>(Resource.Id.Console_Text);
+            Field = Find<EditText>(Resource.Id.Console_Input);
 
-            Input.TextChanged += (sender, arguments) =>
+            Field.TextChanged += (sender, arguments) =>
             {
-                if (arguments.AfterCount > 0 && Input.Text[arguments.Start] == '\n')
+                if (arguments.AfterCount > 0 && Field.Text[arguments.Start] == '\n')
                 {
-                    var input = Input.Text.Substring(0, Input.Text.Length - 1);
+                    var input = Field.Text.Substring(0, Field.Text.Length - 1);
                     
                     Connection.Send(MessageType.Console, new ConsoleMessage(Id, input));
 
-                    InputQueue.Enqueue("> " + input);
-                    Input.Text = string.Empty;
+                    Input.Enqueue("> " + input);
+                    Field.Text = string.Empty;
                 }
             };
 
-            isOpen = true;
+            Open = true;
 
-            QueueThread = new Thread(Queue);
-            QueueThread.Start();
+            Worker = new Thread(Queue);
+            Worker.Start();
         }
 
         public void Close ()
         {
-            isOpen = false;
+            Open = false;
 
             try
             {
-                QueueThread.Join();
+                Worker.Join();
             }
-            catch { }
+            catch {}
 
-            InputQueue.Clear();
-            OutputQueue.Clear();            
+            Input.Clear();
+            Output.Clear();            
         }
     }
 }
