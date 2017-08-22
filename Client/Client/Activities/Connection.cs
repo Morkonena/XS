@@ -26,7 +26,7 @@ namespace Client.Activities
             new Thread(() =>
             {
                 Device = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Device.Connect(new IPEndPoint(IPAddress.Parse("91.157.159.133"), 1111));
+                Device.Connect(new IPEndPoint(IPAddress.Parse("XX.XXX.XXX.XXX"), 1111));
 
                 ConnectionInfo = Device.RemoteEndPoint as IPEndPoint;
                 
