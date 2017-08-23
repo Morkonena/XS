@@ -6,13 +6,12 @@ namespace Server
 {
     class Cryptography
     {
-        public static byte[] GK;
-
         public static RandomNumberGenerator Generator = RandomNumberGenerator.Create();
+        public static byte[] GeneralKey;
 
         public static void Initialize (char[] buffer)
         {
-            GK = Encoding.UTF8.GetBytes(buffer);
+            GeneralKey = Encoding.UTF8.GetBytes(buffer);
         }
 
         public static byte[] Encrypt(byte[] buffer, byte[] key, byte[] iv)
@@ -57,11 +56,23 @@ namespace Server
 
         public static void SendEncryptionInformation ()
         {
-            var bytes = Utility.Convert(Server.Encryption);
-            bytes = Encrypt(bytes, GeneralKeyBytes, GeneralIVBytes);
+            var iv = Generate(16);
 
-            Server.Device.Send(BitConverter.GetBytes(bytes.Length));
-            Server.Device.Send(bytes);
+            var device = new AesManaged()
+            {
+                BlockSize = 128,
+                KeySize = 128,
+                Key = GeneralKey,
+                IV = iv,
+                Mode = CipherMode.CBC,
+                Padding = PaddingMode.PKCS7
+            };
+
+            var buffer = device.CreateEncryptor().TransformFinalBlock(Server.Key, 0, Server.Key.Length);
+
+            Server.Device.Send(BitConverter.GetBytes(buffer.Length));
+            Server.Device.Send(iv);
+            Server.Device.Send(buffer);
         }
     }
 }

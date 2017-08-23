@@ -13,27 +13,29 @@ namespace XC.Activities
 {
     class LoginActivity : Alias
     {
-        public static void Initialize (RootActivity root, Action onFinished)
+        public static void Initialize (RootActivity root, Action finished)
         {
             var prefrences = root.GetPreferences(FileCreationMode.Private);
             
             if (string.IsNullOrEmpty(prefrences.GetString("Address", null)))
             {
-                Setup(root, prefrences.Edit(), onFinished);
+                Setup(root, new string[] { string.Empty, string.Empty, string.Empty }, prefrences.Edit(), finished);
             }
             else
             {
                 Connection.ConnectionInfo = new IPEndPoint(IPAddress.Parse(prefrences.GetString("Address", null)), prefrences.GetInt("Port", 0));
                 Cryptography.Initialize(prefrences.GetString("Key", null));
 
-                onFinished();
+                finished();
             }
         }
 
-        public static void Setup (RootActivity root, ISharedPreferencesEditor editor, Action onFinished)
+        public static void Setup (RootActivity root, string[] defaults, ISharedPreferencesEditor editor, Action finished)
         {
+            root.SetContentView(Resource.Layout.Empty);
+
             var builder = new AlertDialog.Builder(root);
-            builder.SetTitle("Palvelin");
+            builder.SetTitle("Yhteys");
             builder.SetView(Resource.Layout.Setup);
             builder.SetCancelable(false);
 
@@ -41,44 +43,38 @@ namespace XC.Activities
             {
                 try
                 {
-                    var values = new string[] // Better this way
-                    {
-                        ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Setup_Address).Text,
-                        ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Setup_Port).Text,
-                        ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Setup_Key).Text
-                    };
+                    var address = ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Setup_Address).Text;
+                    var port = ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Setup_Port).Text;
+                    var key = ((AlertDialog)sender).FindViewById<EditText>(Resource.Id.Setup_Key).Text;
 
-                    IPAddress address;
-                    int port;
+                    IPAddress ip;
 
-                    if (string.IsNullOrEmpty(values[0]) || string.IsNullOrEmpty(values[1]) || string.IsNullOrEmpty(values[2]))
+                    if (string.IsNullOrEmpty(address) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(key))
                     {
                         root.ShowToast("Kaikki kentät täytyy olla täytettyinä");
+                        Setup(root, defaults, editor, finished);
                         return;
                     }
-                    else if (!IPAddress.TryParse(values[0], out address))
+                    else if (!IPAddress.TryParse(address, out ip))
                     {
                         root.ShowToast("Osoite oli virheellinen!");
+                        Setup(root, defaults, editor, finished);
                         return;
                     }
-                    else if (!int.TryParse(values[1], out port)) // Unnecessary...
+                    else if ((key = key.Replace("-", "")).Length != 16)
                     {
-                        root.ShowToast("Portti oli virheellinen!");
-                        return;
-                    }
-                    else if ((values[2] = values[2].Replace("-", "")).Length != 32)
-                    {
-                        root.ShowToast("Avain täytyy olla 32 merkkiä pitkä!");
+                        root.ShowToast("Avain täytyy olla 16 merkkiä pitkä!");
+                        Setup(root, defaults, editor, finished);
                         return;
                     }
 
-                    editor.PutString("Address", values[0]);
-                    editor.PutInt("Port", port);
-                    editor.PutString("Key", values[2]); // Encryption?
-                    editor.Commit();
+                    Connection.ConnectionInfo = new IPEndPoint(ip, int.Parse(port));
+                    Cryptography.Initialize(key);
 
-                    Connection.ConnectionInfo = new IPEndPoint(address, port);
-                    Cryptography.Initialize(values[2]);               
+                    editor.PutString("Address", address);
+                    editor.PutInt("Port", Connection.ConnectionInfo.Port);
+                    editor.PutString("Key", key); // Encryption?
+                    editor.Commit();                      
                 }
                 catch (Exception e)
                 {
@@ -86,10 +82,14 @@ namespace XC.Activities
                     return;
                 }
 
-                onFinished();
+                finished();
             });
 
-            builder.Show();
+            var dialog = builder.Show();
+
+            dialog.FindViewById<EditText>(Resource.Id.Setup_Address).Text = defaults[0];
+            dialog.FindViewById<EditText>(Resource.Id.Setup_Port).Text = defaults[1];
+            dialog.FindViewById<EditText>(Resource.Id.Setup_Key).Text = defaults[2];
         }
 
         public LoginActivity (RootActivity root) : base(root)
@@ -125,7 +125,7 @@ namespace XC.Activities
             SetContentView(Resource.Layout.Empty);
 
             var builder = new AlertDialog.Builder(GetContext());
-            builder.SetTitle("Kirjautuminen");
+            builder.SetTitle("Kirjaudu");
             builder.SetCancelable(false);
             builder.SetView(Resource.Layout.Login);
 
@@ -144,9 +144,18 @@ namespace XC.Activities
                 Connection.Send(MessageType.Login, new LoginRequest(text));
             });
 
-            builder.SetNegativeButton("Muokkaa", (sender, arguments) =>
+            builder.SetNegativeButton("Asetukset", (sender, arguments) =>
             {
+                Connection.Shutdown();
+                Connection.Disconnect(true);
 
+                var prefrences = GetRoot().GetPreferences(FileCreationMode.Private);
+                var port = prefrences.GetInt("Port", -1);
+
+                LoginActivity.Setup(GetRoot(), new string[] { prefrences.GetString("Address", string.Empty), (port == -1 ? string.Empty : port.ToString()), prefrences.GetString("Key", string.Empty) }, prefrences.Edit(), () =>
+                {
+                    Connection.Initialize(GetRoot());
+                });
             });
 
             builder.Show();

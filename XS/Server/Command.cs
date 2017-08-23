@@ -199,7 +199,7 @@ namespace Server
                 if (UploadManager.Available.Count > 0)
                 {
                     var port = UploadManager.Available.Dequeue();
-                    UploadManager.StartAsync(port, 100000, upload);
+                    UploadManager.StartAsync(port, 1000000, upload);
 
                     Server.Send(MessageType.Download, new DownloadStartRequest(Id, port, upload.Filename));
                 }
@@ -213,7 +213,7 @@ namespace Server
                 if (DownloadManager.Available.Count > 0)
                 {
                     var port = DownloadManager.Available.Dequeue();
-                    DownloadManager.StartAsync(port, 100000, download);
+                    DownloadManager.StartAsync(port, 1000000, download);
 
                     Server.Send(MessageType.Upload, new UploadStartRequest(Id, port, download.Filename));
                 }

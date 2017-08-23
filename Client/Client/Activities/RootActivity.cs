@@ -22,7 +22,6 @@ namespace XC.Activities
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
-            SetContentView(Resource.Layout.Empty);
 
             if (CheckSelfPermission(Android.Manifest.Permission.WriteExternalStorage) == Android.Content.PM.Permission.Denied)
             {
@@ -81,7 +80,7 @@ namespace XC.Activities
             builder.SetTitle("Oikeudet");
             builder.SetMessage("Sovellus tarvitsee kaikkia äskettäin pyydettyjä oikeuksia toimiakseen!");
             builder.SetCancelable(false);
-            builder.SetPositiveButton("Yritä uudelleen", (Sender, Arguments) => { Request(); });
+            builder.SetPositiveButton("Yritä uudestaan", (Sender, Arguments) => { Request(); });
             builder.SetNegativeButton("Poistu", (Sender, Arguments) => { Finish(); });
             builder.Show(); 
         }
@@ -98,8 +97,6 @@ namespace XC.Activities
 
         private void Initialize ()
         {
-            SetContentView(Resource.Layout.Wait);
-
             try
             {
                 EditorActivity.Initialize(this);

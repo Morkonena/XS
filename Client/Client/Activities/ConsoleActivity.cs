@@ -82,17 +82,12 @@ namespace XC.Activities
             Text = Find<TextView>(Resource.Id.Console_Text);
             Field = Find<EditText>(Resource.Id.Console_Input);
 
-            Field.TextChanged += (sender, arguments) =>
+            Field.EditorAction += (sender, arguments) =>
             {
-                if (arguments.AfterCount > 0 && Field.Text[arguments.Start] == '\n')
-                {
-                    var input = Field.Text.Substring(0, Field.Text.Length - 1);
-                    
-                    Connection.Send(MessageType.Console, new ConsoleMessage(Id, input));
+                Connection.Send(MessageType.Console, new ConsoleMessage(Id, Field.Text));
 
-                    Input.Enqueue("> " + input);
-                    Field.Text = string.Empty;
-                }
+                Input.Enqueue("> " + Field.Text);
+                Field.Text = string.Empty;
             };
 
             Open = true;

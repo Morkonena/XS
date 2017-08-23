@@ -32,13 +32,13 @@ namespace XC.Uploading
             Downloads.Add(Task.Run(() => { Start(application, port, bufferSize, filename); }));
         }
 
-        private static void Start (RootActivity root, int port, int bufferSize, string filename)
+        private static void Start (RootActivity root, int port, int capacity, string filename)
         {
             try
             {
                 var connection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                 {
-                    ReceiveBufferSize = bufferSize
+                    ReceiveBufferSize = capacity + 100
                 };
 
                 var result = connection.BeginConnect(new IPEndPoint(Connection.ConnectionInfo.Address, port), null, null);
@@ -55,14 +55,15 @@ namespace XC.Uploading
                     while (true)
                     {
                         var length = BitConverter.ToInt32(Receive(connection, 4), 0);
-
+                        
                         if (length == -1)
                         {
                             break;
                         }
                         else
                         {
-                            stream.Write(Receive(connection, length), 0, length);
+                            var iv = Receive(connection, 16);
+                            stream.Write(Cryptography.Decrypt(Receive(connection, length), Connection.Key, iv), 0, length);
                         }
                     }
                 }

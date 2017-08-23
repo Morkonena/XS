@@ -1,8 +1,10 @@
 ﻿using Android.App;
+using Android.Content;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 using XC.Commands;
 using XC.Login;
@@ -15,32 +17,39 @@ namespace XC.Activities
     {
         public static Socket Device { get; set; }
         public static IPEndPoint ConnectionInfo { get; set; }
-        public static EncryptionInformation Encryption { get; set; }
+       
+        public static byte[] Key { get; set; }
+
+        public static Task Worker { get; set; }
+        public static bool Running { get; set; } = true;
 
         public static Action<MessageType, byte[]> Callback { get; set; }
 
         public static void Initialize (RootActivity root)
         {
-            new Thread(() =>
+            root.SetContentView(Resource.Layout.Wait);
+
+            Worker = Task.Run(() =>
             {
-                while (true)
+                try
                 {
-                    try
-                    {
-                        Device = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                        Device.Connect(ConnectionInfo);
+                    Device = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    var result = Device.BeginConnect(ConnectionInfo, null, null);
 
-                        InitializeEncryption();
-                    }
-                    catch
+                    if (!result.AsyncWaitHandle.WaitOne(5000, true))
                     {
-                        Thread.Sleep(5000);
+                        Device.Close();
 
-                        root.ShowToast("Yritetään uudestaan...");
-                        continue;
+                        OnConnectionFailed(root);
+                        return;
                     }
 
-                    break;
+                    InitializeEncryption();
+                }
+                catch
+                {
+                    OnConnectionFailed(root);
+                    return;
                 }
 
                 try
@@ -53,13 +62,13 @@ namespace XC.Activities
                     return;
                 }
              
-                while (true)
+                while (Running)
                 {
                     try
                     {
                         if (Device.Available >= 4)
                         {
-                            var length = BitConverter.ToInt32(Receive(4), 0);
+                            var length = BitConverter.ToInt32(Read(4), 0);
 
                             if (length == RootActivity.PingCode)
                             {
@@ -74,12 +83,8 @@ namespace XC.Activities
                                 return;
                             }
 
-                            while (Device.Available < length)
-                            {
-                                Thread.Sleep(100);
-                            }
-
-                            var message = Cryptography.DecryptMessage(Receive(length));
+                            var iv = Receive(16);
+                            var message = Utility.Convert<ServerMessage>(Cryptography.Decrypt(Receive(length), Key, iv));
 
                             if (!CommandManager.Process(root, message) && Callback != null)
                             {
@@ -106,7 +111,36 @@ namespace XC.Activities
                     }
                 }
 
-            }).Start();
+            });
+        }
+
+        private static void OnConnectionFailed (RootActivity root)
+        {
+            var builder = new AlertDialog.Builder(root);
+            builder.SetTitle("Yhdistäminen epäonnistui");
+            builder.SetMessage("Haluatko muokata yhteysasetuksia vai yrittää uudestaan?");
+            builder.SetCancelable(false);
+
+            builder.SetPositiveButton("Yritä uudestaan", (sender, arguments) =>
+            {
+                Connection.Shutdown();
+                Connection.Initialize(root);
+            });
+
+            builder.SetNegativeButton("Asetukset", (sender, arguments) =>
+            {
+                Connection.Shutdown();
+
+                var prefrences = root.GetPreferences(FileCreationMode.Private);
+                var port = prefrences.GetInt("Port", -1);
+
+                LoginActivity.Setup(root, new string[] { prefrences.GetString("Address", string.Empty), (port == -1 ? string.Empty : port.ToString()), prefrences.GetString("Key", string.Empty) }, root.GetPreferences(FileCreationMode.Private).Edit(), () =>
+                {
+                    Connection.Initialize(root);
+                });
+            });
+
+            root.RunOnUiThread(() => builder.Show());
         }
 
         private static void OnUnexceptedCrash (RootActivity root, Exception e)
@@ -117,8 +151,18 @@ namespace XC.Activities
             });
         }
 
+        private static byte[] Read (int length)
+        {
+            var buffer = new byte[length];
+            Device.Receive(buffer);
+
+            return buffer;
+        }
+
         private static byte[] Receive (int length)
         {
+            while (Device.Available < length) { }
+
             var buffer = new byte[length];
             Device.Receive(buffer);
 
@@ -127,27 +171,44 @@ namespace XC.Activities
 
         private static void InitializeEncryption ()
         {
-            while (Device.Available < 4) {}
-
             var length = BitConverter.ToInt32(Receive(4), 0);
-            while (Device.Available < length) {}
+            var iv = Receive(16);
 
-            Encryption = Utility.Convert<EncryptionInformation>(Cryptography.Decrypt(Receive(length), Cryptography.GK, null));
+            var device = new AesManaged()
+            {
+                BlockSize = 128,
+                KeySize = 128,
+                Key = Cryptography.GeneralKey,
+                IV = iv,
+                Mode = CipherMode.CBC,
+                Padding = PaddingMode.PKCS7
+            };
+
+            Key = device.CreateDecryptor().TransformFinalBlock(Receive(length), 0, length);
         }
 
         public static void Send (MessageType type, object data)
         {
             try
             {
-                var buffer = Cryptography.EncryptMessage(new ClientMessage(type, data));
+                var iv = Cryptography.Generate(16);
+                var buffer = Cryptography.Encrypt(Utility.Convert(new ClientMessage(type, data)), Key, iv);
 
                 Device.Send(BitConverter.GetBytes(buffer.Length));
+                Device.Send(iv);
                 Device.Send(buffer);
             }
             catch (Exception e)
             {
                 Disconnect(false);
             }        
+        }
+
+        public static void Shutdown ()
+        {
+            Running = false;
+            Worker.Wait();
+            Running = true;
         }
 
         public static void Disconnect(bool notify)

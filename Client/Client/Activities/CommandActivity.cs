@@ -49,7 +49,7 @@ namespace XC.Activities
         {
             SetContentView(Resource.Layout.Commands);
 
-            Find<Button>(Resource.Id.Commands_Add).Click += OnProjectManagement;
+            Find<ImageView>(Resource.Id.Commands_Add).Click += OnProjectManagement;
 
             CommandList = Find<ListView>(Resource.Id.Commands_List);      
 
@@ -221,8 +221,6 @@ namespace XC.Activities
 
             if (processes.Length > 0)
             {
-                dialog.FindViewById<TextView>(Resource.Id.Execute_NoProcesses).Visibility = ViewStates.Invisible; 
-
                 var list = dialog.FindViewById<ListView>(Resource.Id.Execute_List);
 
                 list.Adapter = new ArrayAdapter(GetContext(), Android.Resource.Layout.SimpleListItem1, processes.Select(process => process.Name).ToArray()); 
@@ -232,7 +230,7 @@ namespace XC.Activities
 
             if (command.Description.Length > 0)
             {
-                dialog.FindViewById<TextView>(Resource.Id.Compile_Description).Text = command.Description;
+                dialog.FindViewById<TextView>(Resource.Id.Execute_Description).Text = command.Description;
             }       
         }
 

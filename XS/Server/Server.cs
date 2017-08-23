@@ -12,7 +12,7 @@ namespace Server
         public const int DisconnectCode = -2;
 
         public static Connection Device;
-        public static EncryptionInformation Encryption = new EncryptionInformation();
+        public static byte[] Key;
 
         public static bool Logged = false;
 
@@ -44,6 +44,7 @@ namespace Server
                 catch (Exception e)
                 {
                     Print("Connection error: " + e.ToString());
+                    Disconnect(true);
                 }
 
                 while (Device != null) {}
@@ -57,7 +58,6 @@ namespace Server
             try
             {
                 Database.Initialize();
-                Cryptography.Initialize();
                 CommandProcess.Initialize();
 
                 Uid.Initialize();
@@ -65,10 +65,7 @@ namespace Server
                 DownloadManager.Initialize(1000, 10);
                 UploadManager.Initialize(1000, 10);
 
-                if (!Login.Initialize())
-                {
-                    Shutdown(60, "Initialization error: Login");
-                }                
+                Login.Initialize();
             }
             catch (Exception e)
             {
@@ -82,13 +79,22 @@ namespace Server
         public static void Disconnect (bool notify = true)
         {
             Logged = false;
-            Encryption = new EncryptionInformation();
+            Key = Cryptography.Generate(32);
 
-            while (CommandProcess.Running.Count > 0)
+            Task.Run(() =>
             {
-                CommandProcess.Running[0].OnExit();
-            }
+                foreach (var process in CommandProcess.Running)
+                {
+                    try
+                    {
+                        process.OnExit();
+                    }
+                    catch {}
+                }
 
+                CommandProcess.Running.Clear();
+            });
+            
             Print("Disconnected");
 
             if (Device != null)
@@ -106,43 +112,18 @@ namespace Server
                 (DateTime.Now.Second < 10 ? "0" + DateTime.Now.Second.ToString() : DateTime.Now.Second.ToString()), text));
         }
 
-        public static void Send (MessageType type, byte[] data)
-        {
-            var message = new ServerMessage(type, data);
-            var bytes = Utility.Convert(message);
-
-            if ((bytes = Cryptography.Encrypt(bytes, Encryption.Key, Encryption.IV)) == null)
-            {
-                Disconnect();
-                return;
-            }
-
-            try
-            {
-                Device.Send(BitConverter.GetBytes(bytes.Length));
-                Device.Send(bytes);
-            }
-            catch
-            {
-                Disconnect(false);
-            }
-        }
-
         public static void Send (MessageType type, object data)
         {
-            var message = new ServerMessage(type, data);
-            var bytes = Utility.Convert(message);
-
-            if ((bytes = Cryptography.Encrypt(bytes, Encryption.Key, Encryption.IV)) == null)
-            {
-                Disconnect();
-                return;
-            }
-
             try
             {
-                Device.Send(BitConverter.GetBytes(bytes.Length));
-                Device.Send(bytes);
+                var buffer = Utility.Convert(new ServerMessage(type, data));
+                var iv = Cryptography.Generate(16);
+
+                buffer = Cryptography.Encrypt(buffer, Key, iv);
+
+                Device.Send(BitConverter.GetBytes(buffer.Length));
+                Device.Send(iv);
+                Device.Send(buffer);
             }
             catch
             {

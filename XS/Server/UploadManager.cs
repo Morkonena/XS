@@ -19,9 +19,12 @@ namespace Server
 
         public void Send (byte[] bytes)
         {
-            bytes = Cryptography.Encrypt(bytes, Server.Encryption.Key, Server.Encryption.IV);
+            var iv = Cryptography.Generate(16);
+
+            bytes = Cryptography.Encrypt(bytes, Server.Key, iv);
 
             Device.Send(BitConverter.GetBytes(bytes.Length));
+            Device.Send(iv);
             Device.Send(bytes);
         }
     }
@@ -39,17 +42,12 @@ namespace Server
             }
         }
 
-        private static void SendEncrypted (Socket socket, byte[] buffer)
-        {
-            socket.Send(Cryptography.Encrypt(buffer, Server.Encryption.Key, Server.Encryption.IV));
-        }
-
         public static void StartAsync (int port, int bufferSize, Upload upload)
         {
             Uploads.Add(Task.Run(() => { Start(port, bufferSize, upload); }));
         }
 
-        private static void Start (int port, int bufferSize, Upload upload)
+        private static void Start (int port, int capacity, Upload upload)
         {
             try
             {
@@ -58,7 +56,7 @@ namespace Server
                 listener.Listen(1);
 
                 var connection = listener.Accept();
-                connection.SendBufferSize = 1000000;
+                connection.SendBufferSize = capacity + 100;
 
                 upload.Send(new UploadNetworkStream(connection));
 
@@ -84,7 +82,7 @@ namespace Server
 
             lock (Uploads)
             {
-                for (int i = 0; i < Uploads.Count; i++)
+                for (var i = 0; i < Uploads.Count; i++)
                 {
                     if (Uploads[i].Id == Task.CurrentId)
                     {

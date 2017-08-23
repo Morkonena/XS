@@ -11,6 +11,7 @@
         android:backgroundTint="#FFFFFFFF"
         android:textColorHint="#FFFFFFFF"
         android:textColor="#FFFFFFFF"
+        android:inputType="textNoSuggestions"
         android:imeOptions="actionSend"
         android:hint="Komento"
         android:id="@+id/Console_Input" />

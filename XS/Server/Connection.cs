@@ -71,7 +71,7 @@ namespace Server
                     {
                         Received = DateTime.Now;
 
-                        var length = BitConverter.ToInt32(Receive(4), 0);
+                        var length = BitConverter.ToInt32(Read(4), 0);
 
                         if (length == Server.PingCode)
                         {
@@ -89,14 +89,8 @@ namespace Server
                             return;
                         }
 
-                        while (Client.Available < length) {}
-                        var buffer = Receive(length);
-
-                        if ((buffer = Cryptography.Decrypt(buffer, Server.Encryption.Key, Server.Encryption.IV)) == null)
-                        {
-                            Server.Disconnect();
-                            return;
-                        }
+                        var iv = Receive(16);
+                        var buffer = Cryptography.Decrypt(Receive(length), Server.Key, iv);
 
                         try
                         {
@@ -146,12 +140,22 @@ namespace Server
             catch {}
         }
 
-        public byte[] Receive(int Length)
+        public byte[] Read(int length)
         {
-            byte[] Buffer = new byte[Length];
-            Client.Receive(Buffer);
+            var buffer = new byte[length];
+            Client.Receive(buffer);
 
-            return Buffer;
+            return buffer;
+        }
+
+        public byte[] Receive (int length)
+        {
+            while (Client.Available < length) { }
+
+            var buffer = new byte[length];
+            Client.Receive(buffer);
+
+            return buffer;
         }
     }
 }

@@ -17,11 +17,14 @@ namespace XC.Uploading
 
         public const int Timeout = 5000;
 
-        private static void SendEncrypted (Socket socket, byte[] buffer)
+        private static void Send (Socket socket, byte[] buffer)
         {
-            buffer = Cryptography.Encrypt(buffer, Connection.Encryption.Key, Connection.Encryption.IV);
+            var iv = Cryptography.Generate(16);
+
+            buffer = Cryptography.Encrypt(buffer, Connection.Key, iv);
 
             socket.Send(BitConverter.GetBytes(buffer.Length));
+            socket.Send(iv);
             socket.Send(buffer);
         }
 
@@ -30,13 +33,13 @@ namespace XC.Uploading
             Uploads.Add(Task.Run(() => { Start(application, port, bufferSize, filename); }));
         }
 
-        private static void Start (RootActivity root, int port, int bufferSize, string filename)
+        private static void Start (RootActivity root, int port, int capacity, string filename)
         {
             try
             {
                 var connection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                 {
-                    SendBufferSize = bufferSize
+                    SendBufferSize = capacity + 100
                 };
 
                 var result = connection.BeginConnect(new IPEndPoint(Connection.ConnectionInfo.Address, port), null, null);
@@ -50,23 +53,21 @@ namespace XC.Uploading
 
                 using (var stream = new FileStream(filename, FileMode.Open))
                 {
-                    var available = stream.Length;
-                    var buffer = new byte[Math.Min(bufferSize, available)];
+                    var buffer = new byte[capacity];
+                    var length = 0;
 
                     while (true)
                     {
-                        stream.Read(buffer, 0, buffer.Length);
-                        available -= buffer.Length;
-
-                        SendEncrypted(connection, buffer);
-
-                        if (available == 0)
+                        if ((length = stream.Read(buffer, 0, buffer.Length)) != buffer.Length)
                         {
-                            break;
+                            Array.Resize(ref buffer, length);
+
+                            Send(connection, buffer);
+                            break;                     
                         }
-                        else if (available < bufferSize)
+                        else
                         {
-                            buffer = new byte[available];
+                            Send(connection, buffer);
                         }
                     }
                 }

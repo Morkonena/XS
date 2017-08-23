@@ -7,11 +7,20 @@ namespace XC.Utilities
 {
     class Cryptography
     {
-        public static byte[] GK;
+        public static RandomNumberGenerator Generator = RandomNumberGenerator.Create();
+        public static byte[] GeneralKey;
 
         public static void Initialize (string key)
         {
-            GK = Encoding.UTF8.GetBytes(key);
+            GeneralKey = Encoding.UTF8.GetBytes(key);
+        }
+
+        public static byte[] Generate(int length)
+        {
+            var bytes = new byte[length];
+            Generator.GetBytes(bytes);
+
+            return bytes;
         }
 
         public static byte[] Encrypt (byte[] buffer, byte[] key, byte[] iv)
@@ -42,16 +51,6 @@ namespace XC.Utilities
             {
                 return device.CreateDecryptor().TransformFinalBlock(buffer, 0, buffer.Length);
             }
-        }
-
-        public static ServerMessage DecryptMessage (byte[] buffer)
-        {
-            return Utility.Convert<ServerMessage>(Decrypt(buffer, Connection.Encryption.Key, Connection.Encryption.IV));
-        }
-
-        public static byte[] EncryptMessage (ClientMessage message)
-        {
-            return Encrypt(Utility.Convert(message), Connection.Encryption.Key, Connection.Encryption.IV);
         }
     }
 }

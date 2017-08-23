@@ -102,44 +102,38 @@ namespace XC
 			// aapt resource value: 0x7f060007
 			public const int Editor_Text = 2131099655;
 			
-			// aapt resource value: 0x7f06000e
-			public const int Execute_Console = 2131099662;
-			
-			// aapt resource value: 0x7f06000a
-			public const int Execute_Container = 2131099658;
+			// aapt resource value: 0x7f06000c
+			public const int Execute_Console = 2131099660;
 			
 			// aapt resource value: 0x7f060009
 			public const int Execute_Description = 2131099657;
 			
+			// aapt resource value: 0x7f06000a
+			public const int Execute_List = 2131099658;
+			
 			// aapt resource value: 0x7f06000b
-			public const int Execute_List = 2131099659;
+			public const int Execute_Name = 2131099659;
 			
 			// aapt resource value: 0x7f06000d
-			public const int Execute_Name = 2131099661;
+			public const int File_Name = 2131099661;
 			
-			// aapt resource value: 0x7f06000c
-			public const int Execute_NoProcesses = 2131099660;
+			// aapt resource value: 0x7f06000e
+			public const int Login_Password = 2131099662;
 			
 			// aapt resource value: 0x7f06000f
-			public const int File_Name = 2131099663;
+			public const int Project_Name = 2131099663;
 			
 			// aapt resource value: 0x7f060010
-			public const int Login_Password = 2131099664;
+			public const int Selection_List = 2131099664;
 			
 			// aapt resource value: 0x7f060011
-			public const int Project_Name = 2131099665;
-			
-			// aapt resource value: 0x7f060012
-			public const int Selection_List = 2131099666;
+			public const int Setup_Address = 2131099665;
 			
 			// aapt resource value: 0x7f060013
-			public const int Setup_Address = 2131099667;
+			public const int Setup_Key = 2131099667;
 			
-			// aapt resource value: 0x7f060015
-			public const int Setup_Key = 2131099669;
-			
-			// aapt resource value: 0x7f060014
-			public const int Setup_Port = 2131099668;
+			// aapt resource value: 0x7f060012
+			public const int Setup_Port = 2131099666;
 			
 			static Id()
 			{

@@ -24,25 +24,11 @@ namespace Server
         private static byte[] Receive(Socket socket, int length)
         {
             var buffer = new byte[length];
-            while (socket.Available < length) { }
 
+            while (socket.Available < length) {}
             socket.Receive(buffer);
 
             return buffer;
-        }
-
-        private static void ReceiveDecrypted(Socket socket, byte[] buffer)
-        {
-            while (socket.Available < buffer.Length) { }
-            socket.Receive(buffer);
-
-            buffer = Cryptography.Decrypt(buffer, Server.Encryption.Key, Server.Encryption.IV);
-        }
-
-        private static void Receive(Socket socket, byte[] buffer)
-        {
-            while (socket.Available < buffer.Length) { }
-            socket.Receive(buffer);
         }
 
         public static void StartAsync (int port, int bufferSize, Download download)
@@ -50,7 +36,7 @@ namespace Server
             Downloads.Add(Task.Run(() => { Start(port, bufferSize, download); }));      
         }
 
-        private static void Start(int port, int bufferSize, Download download)
+        private static void Start(int port, int capacity, Download download)
         {
             try
             {
@@ -59,7 +45,7 @@ namespace Server
                 listener.Listen(1);
 
                 var connection = listener.Accept();
-                connection.ReceiveBufferSize = 1000000;
+                connection.ReceiveBufferSize = capacity + 100;
 
                 while (true)
                 {
@@ -71,7 +57,8 @@ namespace Server
                     }
                     else
                     {
-                        download.Receive(Receive(connection, length));
+                        var iv = Receive(connection, 16);
+                        download.Receive(Cryptography.Decrypt(Receive(connection, length), Server.Key, iv));
                     }
                 }
 
@@ -97,7 +84,7 @@ namespace Server
 
             lock (Downloads)
             {
-                for (int i = 0; i < Downloads.Count; i++)
+                for (var i = 0; i < Downloads.Count; i++)
                 {
                     if (Downloads[i].Id == Task.CurrentId)
                     {
